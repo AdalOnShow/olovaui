@@ -1,43 +1,57 @@
 import fs from 'fs';
 import path from 'path';
-import { promisify } from 'util';
 import { spawnSync } from 'child_process';
-import Critters from 'critters';
-
-const readFile = promisify(fs.readFile);
-const writeFile = promisify(fs.writeFile);
-const readdir = promisify(fs.readdir);
 
 const OUT_DIR = path.join(process.cwd(), 'out');
 
-async function* walk(dir: string): AsyncGenerator<string> {
-  const entries = await readdir(dir, { withFileTypes: true });
-  for (const entry of entries) {
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      yield* walk(full);
-    } else {
-      yield full;
-    }
-  }
-}
+function flattenNextPayloads() {
+  let copied = 0;
 
-async function inlineCriticalCSS() {
-  const critters = new Critters({
-    path: OUT_DIR,
-    preload: 'swap',
-    compress: true,
-    inlineFonts: true,
-    pruneSource: true,
-  });
+  const flattenPayloadDirectory = (routeDir: string, payloadRoot: string, currentDir = payloadRoot) => {
+    const payloadRootName = path.basename(payloadRoot);
+    const entries = fs.readdirSync(currentDir, { withFileTypes: true });
 
-  for await (const file of walk(OUT_DIR)) {
-    if (file.endsWith('.html')) {
-      const html = await readFile(file, 'utf-8');
-      const processed = await critters.process(html);
-      await writeFile(file, processed);
+    for (const entry of entries) {
+      const full = path.join(currentDir, entry.name);
+
+      if (entry.isDirectory()) {
+        flattenPayloadDirectory(routeDir, payloadRoot, full);
+        continue;
+      }
+
+      if (!entry.isFile() || !entry.name.endsWith('.txt')) {
+        continue;
+      }
+
+      const relativeParts = path.relative(payloadRoot, full).split(path.sep);
+      const flatName = [payloadRootName, ...relativeParts].join('.');
+      const destination = path.join(routeDir, flatName);
+
+      fs.copyFileSync(full, destination);
+      copied += 1;
     }
-  }
+  };
+
+  const walk = (dir: string) => {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+
+    for (const entry of entries) {
+      const full = path.join(dir, entry.name);
+
+      if (!entry.isDirectory()) {
+        continue;
+      }
+
+      if (entry.name.startsWith('__next.')) {
+        flattenPayloadDirectory(dir, full);
+      }
+
+      walk(full);
+    }
+  };
+
+  walk(OUT_DIR);
+  console.warn(`Prepared ${copied} static RSC payload aliases`);
 }
 
 async function main() {
@@ -45,8 +59,9 @@ async function main() {
     console.warn('out/ directory not found; skip post-export optimizations');
     return;
   }
-  console.warn('Inlining critical CSS with Critters...');
-  await inlineCriticalCSS();
+
+  flattenNextPayloads();
+
   console.warn('Building Pagefind search index...');
   const pagefindBinary = path.join(
     process.cwd(),

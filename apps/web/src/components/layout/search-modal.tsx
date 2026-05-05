@@ -7,6 +7,7 @@ import { getAllSearchableItems, searchItems, SearchableItem } from "@/lib/search
 import { navigation } from "@/constants/navigation";
 import { componentsNavigation } from "@/constants/components-navigation";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface SearchModalProps {
   isOpen: boolean;
@@ -109,6 +110,7 @@ const searchSidebarSections: SearchSidebarSection[] = [
 ];
 
 export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [allItems] = useState(() => getAllSearchableItems());
@@ -282,7 +284,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
         case "Enter":
           e.preventDefault();
           if (filteredItems[selectedIndex]) {
-            window.location.href = filteredItems[selectedIndex].href;
+            router.push(filteredItems[selectedIndex].href);
             onClose();
           }
           break;
@@ -295,7 +297,15 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, filteredItems, selectedIndex, onClose]);
+  }, [isOpen, filteredItems, selectedIndex, onClose, router]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    for (const item of filteredItems.slice(0, 6)) {
+      router.prefetch(item.href);
+    }
+  }, [filteredItems, isOpen, router]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {

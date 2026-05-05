@@ -17,18 +17,28 @@ function subscribeBanner(callback: () => void) {
   };
 }
 function getIsDismissed() {
-  return !!localStorage.getItem(BANNER_STORAGE_KEY);
+  try {
+    return !!localStorage.getItem(BANNER_STORAGE_KEY);
+  } catch {
+    return false;
+  }
 }
-// Server snapshot always returns true (dismissed) to avoid rendering on server
+// Render by default for static HTML; the early UI script hides it before paint
+// when the user has already dismissed it.
 function getServerIsDismissed() {
-  return true;
+  return false;
 }
 
 const SupportAlertBanner = () => {
   const isDismissed = useSyncExternalStore(subscribeBanner, getIsDismissed, getServerIsDismissed);
 
   const handleClose = useCallback(() => {
-    localStorage.setItem(BANNER_STORAGE_KEY, "true");
+    try {
+      localStorage.setItem(BANNER_STORAGE_KEY, "true");
+    } catch {
+      // Keep the current session stable even if storage is unavailable.
+    }
+    document.documentElement.dataset.supportBannerDismissed = "true";
     emitChange();
   }, []);
 
@@ -40,6 +50,9 @@ const SupportAlertBanner = () => {
         :root {
           --fd-banner-height: 3rem;
         }
+        :root[data-support-banner-dismissed="true"] .support-alert-banner {
+          display: none;
+        }
         @keyframes fd-moving-banner {
           from {
             background-position: 0% 0;
@@ -50,7 +63,7 @@ const SupportAlertBanner = () => {
         }
       `}</style>
       <div
-        className="sticky top-0 z-40 flex flex-row items-center justify-center px-4 text-center text-sm font-medium bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 relative"
+        className="support-alert-banner sticky top-0 z-40 flex flex-row items-center justify-center px-4 text-center text-sm font-medium bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 relative"
         style={{ height: "3rem" }}
       >
         <div

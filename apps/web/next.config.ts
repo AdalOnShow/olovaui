@@ -8,13 +8,13 @@ const withBundleAnalyzer = bundleAnalyzer({
 
 const nextConfig: NextConfig = {
   output: "export",
-  trailingSlash: false,
+  trailingSlash: true,
   reactStrictMode: true,
   pageExtensions: ["js", "jsx", "ts", "tsx", "md", "mdx"],
 
   compress: true,
   poweredByHeader: false,
-  productionBrowserSourceMaps: true,
+  productionBrowserSourceMaps: false,
 
   images: {
     unoptimized: true,

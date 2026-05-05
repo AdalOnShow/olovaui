@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight, ArrowUp } from "lucide-react";
 import { getAdjacentPages } from "@/lib/docs-navigation";
 import { cn } from "@/lib/utils";
@@ -9,54 +9,52 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface DocPaginationProps {
-  showProgress?: boolean;
   showBackToTop?: boolean;
   showKeyboardHints?: boolean;
 }
 
 export function DocPagination({ 
-  showProgress = true, 
   showBackToTop = true,
   showKeyboardHints = true 
 }: DocPaginationProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const { previous, next } = getAdjacentPages(pathname);
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [, setReadProgress] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => {
       const scrolled = window.scrollY > 400;
-      setShowScrollTop(scrolled);
-
-      if (showProgress) {
-        const windowHeight = window.innerHeight;
-        const documentHeight = document.documentElement.scrollHeight - windowHeight;
-        const scrollTop = window.scrollY;
-        const progress = (scrollTop / documentHeight) * 100;
-        setReadProgress(Math.min(progress, 100));
-      }
+      setShowScrollTop((current) => (current === scrolled ? current : scrolled));
     };
 
-    window.addEventListener("scroll", handleScroll);
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [showProgress]);
+  }, []);
+
+  useEffect(() => {
+    if (previous?.href) router.prefetch(previous.href);
+    if (next?.href) router.prefetch(next.href);
+  }, [next?.href, previous?.href, router]);
 
   useEffect(() => {
     if (!showKeyboardHints) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.altKey && e.key === "ArrowLeft" && previous) {
-        window.location.href = previous.href;
+        e.preventDefault();
+        router.push(previous.href);
       }
       if (e.altKey && e.key === "ArrowRight" && next) {
-        window.location.href = next.href;
+        e.preventDefault();
+        router.push(next.href);
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [previous, next, showKeyboardHints]);
+  }, [next, previous, router, showKeyboardHints]);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });

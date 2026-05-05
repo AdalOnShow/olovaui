@@ -16,10 +16,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className="dark" style={{ colorScheme: 'dark' }} suppressHydrationWarning>
       <head>
         <MetaTags />
         <meta name="google-site-verification" content="A4XbFNsC1916zjxsmhpEfyc1VYQsV33iFDki7EcCA4o" />
+        <ResourcePreloader />
+      </head>
+      <body
+        className={`${geistSans.className} ${geistMono.variable} ${geistSans.variable} antialiased min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-normal`}
+      >
+        <Script src="/early-ui-state.js" strategy="beforeInteractive" />
         <Script src="https://www.googletagmanager.com/gtag/js?id=G-3B6SP4PBXQ" strategy="afterInteractive" />
         <Script id="google-analytics-init" strategy="afterInteractive">
           {`
@@ -29,11 +35,6 @@ export default function RootLayout({
             gtag('config', 'G-3B6SP4PBXQ');
           `}
         </Script>
-        <ResourcePreloader />
-      </head>
-      <body
-        className={`${geistSans.className} ${geistMono.variable} ${geistSans.variable} antialiased min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-normal`}
-      >
         <Providers>
           {children}
           <ClientShell />
