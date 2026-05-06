@@ -27,6 +27,10 @@ export const navigation: NavigationItem[] = [
         href: "/docs/text/flip-link",
       },
       {
+        label: "Shiny Text",
+        href: "/docs/text/shiny-text",
+      },
+      {
         label: "Slide In View",
         href: "/docs/text/slide-in-text",
       },

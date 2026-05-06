@@ -1,78 +1,161 @@
 "use client";
 
-import { CSSProperties, ReactNode } from "react";
-import { cn } from "@/lib/utils";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  motion,
+  useAnimationFrame,
+  useMotionValue,
+  useTransform,
+} from "framer-motion";
 
-export interface ShinyTextProps {
-  children: ReactNode;
-  className?: string;
-  style?: CSSProperties;
-  speed?: number;
-  angle?: number;
-  colors?: string[];
-  disabled?: boolean;
+type ShineDirection = "left" | "right";
+
+interface ShineProgressOptions {
+  disabled: boolean;
+  isPaused: boolean;
+  speed: number;
+  delay: number;
+  yoyo: boolean;
+  direction: ShineDirection;
 }
 
-/**
- * ShinyText - A text component with a shimmering gradient effect that passes through the text.
- * 
- * @param children - The text content to display
- * @param className - Additional CSS classes
- * @param style - Inline styles
- * @param speed - Animation speed in seconds (default: 3)
- * @param angle - Gradient angle in degrees (default: -45)
- * @param colors - Array of colors for the gradient effect
- * @param disabled - Disable the animation effect
- */
-export const ShinyText = ({
-  children,
-  className,
-  style,
-  speed = 3,
-  angle = -45,
-  colors = ["#9d9d9d", "rgba(217, 217, 217, 0)", "#9d9d9d"],
+function useShineProgress({
+  disabled,
+  isPaused,
+  speed,
+  delay,
+  yoyo,
+  direction,
+}: ShineProgressOptions) {
+  const animMs = Math.max(speed, 0.001) * 1000;
+  const delayMs = Math.max(delay, 0) * 1000;
+  const cycleMs = animMs + delayMs;
+  const isRTL = direction === "right";
+
+  const progress = useMotionValue(isRTL ? 100 : 0);
+  const elapsed = useRef(0);
+  const lastTime = useRef<number | null>(null);
+
+  useEffect(() => {
+    elapsed.current = 0;
+    lastTime.current = null;
+    progress.set(isRTL ? 100 : 0);
+  }, [isRTL, progress]);
+
+  useAnimationFrame((time) => {
+    if (disabled || isPaused) {
+      lastTime.current = null;
+      return;
+    }
+
+    if (lastTime.current === null) {
+      lastTime.current = time;
+      return;
+    }
+
+    elapsed.current += time - lastTime.current;
+    lastTime.current = time;
+
+    const flip = (value: number) => (isRTL ? 100 - value : value);
+
+    if (yoyo) {
+      const t = elapsed.current % (cycleMs * 2);
+      if (t < animMs) {
+        progress.set(flip((t / animMs) * 100));
+      } else if (t < cycleMs) {
+        progress.set(flip(100));
+      } else if (t < cycleMs + animMs) {
+        progress.set(flip(100 - ((t - cycleMs) / animMs) * 100));
+      } else {
+        progress.set(flip(0));
+      }
+      return;
+    }
+
+    const t = elapsed.current % cycleMs;
+    progress.set(t < animMs ? flip((t / animMs) * 100) : flip(100));
+  });
+
+  return progress;
+}
+
+export interface ShinyTextProps {
+  text: string;
+  disabled?: boolean;
+  speed?: number;
+  className?: string;
+  color?: string;
+  shineColor?: string;
+  spread?: number;
+  yoyo?: boolean;
+  pauseOnHover?: boolean;
+  direction?: ShineDirection;
+  delay?: number;
+}
+
+export function ShinyText({
+  text,
   disabled = false,
-}: ShinyTextProps) => {
-  // Build the gradient string based on the angle and colors
-  const gradientStops = colors.map((color, index) => {
-    const position = index === 0 ? "0%" : index === 1 ? "50%" : "100%";
-    return `${color} ${position}`;
-  }).join(", ");
+  speed = 5,
+  className = "",
+  color = "#4b5563",
+  shineColor = "#ffffff",
+  spread = 120,
+  yoyo = false,
+  pauseOnHover = false,
+  direction = "left",
+  delay = 0,
+}: ShinyTextProps) {
+  const [isPaused, setIsPaused] = useState(false);
+  const progress = useShineProgress({
+    disabled,
+    isPaused,
+    speed,
+    delay,
+    yoyo,
+    direction,
+  });
+  const backgroundPosition = useTransform(
+    progress,
+    (value) => `${150 - value * 2}% center`,
+  );
 
-  const gradientStyle = `linear-gradient(${angle}deg, ${gradientStops})`;
+  const handleMouseEnter = useCallback(() => {
+    if (pauseOnHover) {
+      setIsPaused(true);
+    }
+  }, [pauseOnHover]);
 
-  // Calculate background size based on angle for proper animation
-  const bgSize = disabled ? "100% 100%" : "200% 100%";
+  const handleMouseLeave = useCallback(() => {
+    if (pauseOnHover) {
+      setIsPaused(false);
+    }
+  }, [pauseOnHover]);
 
   return (
-    <span
-      className={cn("shiny-text-wrapper inline-block", className)}
+    <motion.span
+      className={`inline-block select-none ${className}`}
       style={{
-        ...style,
-        backgroundImage: disabled ? "none" : gradientStyle,
-        backgroundSize: bgSize,
-        backgroundRepeat: "no-repeat",
-        backgroundPosition: "0% 0%",
-        ...(disabled ? {} : {
-          WebkitBackgroundClip: "text",
-          backgroundClip: "text",
-          WebkitTextFillColor: "transparent",
-          color: "transparent",
-          animation: `shiny-slide ${speed}s linear infinite`,
-        }),
+        backgroundImage: `linear-gradient(
+          ${spread}deg,
+          ${color} 0%,
+          ${color} 35%,
+          ${shineColor} 50%,
+          ${color} 65%,
+          ${color} 100%
+        )`,
+        backgroundSize: "200% auto",
+        WebkitBackgroundClip: "text",
+        backgroundClip: "text",
+        WebkitTextFillColor: "transparent",
+        backgroundPosition,
       }}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
-      <style>{`
-        @keyframes shiny-slide {
-          0% {
-            background-position: 100% 0%;
-          }
-          100% {
-            background-position: -100% 0%;
-          }
-        }
-      `}</style>
-      {children}
-    </span>
+      {text}
+    </motion.span>
   );
-};
+}
+
+export default ShinyText;
