@@ -31,6 +31,10 @@ export const navigation: NavigationItem[] = [
         href: "/docs/text/shiny-text",
       },
       {
+        label: "Gradient Text",
+        href: "/docs/text/animated-gradient-text",
+      },
+      {
         label: "Slide In View",
         href: "/docs/text/slide-in-text",
       },
