@@ -35,7 +35,7 @@ export function GradientText(props: AnimatedGradientProps) {
   const {
     children,
     className = "",
-    colors = ["#5227FF", "#FF9FFC", "#B497CF"],
+    colors = ["#22C55E", "#84CC16", "#EAB308", "#F59E0B"],
     animationSpeed = 8,
     showBorder = false,
     direction = "horizontal",
