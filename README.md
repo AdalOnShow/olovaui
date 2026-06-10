@@ -1,6 +1,16 @@
-# Olova UI -
+<div align="center">
 
-> **Modern React Component Library with 500+ Animated Components**
+<img src="https://olovaui.olova.dev/_next/static/media/olova.0ubep8krpm77e.png" alt="Olova UI Logo" width="200" />
+
+# Olova UI
+
+**Modern React Component Library with 500+ Animated Components**
+
+[Documentation](https://olovaui.olova.dev/docs) · [Components](https://olovaui.olova.dev) · [GitHub](https://github.com/olovalabs/olovaui) · [Sponsor](https://olovaui.olova.dev/sponsor)
+
+</div>
+
+---
 
 Beautifully designed React components you can copy and paste into your apps. Accessible. Customizable. Open Source. Built with Tailwind CSS, Framer Motion, and TypeScript.
 
@@ -26,16 +36,16 @@ Our CLI will guide you through the process of adding components to your project.
 
 ```bash
 # Using pnpm
-pnpm dlx shadcn@latest add "https://olovaui.olova.net/registry/button.json"
+pnpm dlx shadcn@latest add "https://olovaui.olova.dev/registry/button.json"
 
 # Using npm
-npx shadcn@latest add "https://olovaui.olova.net/registry/button.json"
+npx shadcn@latest add "https://olovaui.olova.dev/registry/button.json"
 
 # Using yarn
-yarn dlx shadcn@latest add "https://olovaui.olova.net/registry/button.json"
+yarn dlx shadcn@latest add "https://olovaui.olova.dev/registry/button.json"
 
 # Using bun
-bunx shadcn@latest add "https://olovaui.olova.net/registry/button.json"
+bunx shadcn@latest add "https://olovaui.olova.dev/registry/button.json"
 ```
 
 ### Manual Installation
@@ -88,84 +98,49 @@ npm install tailwindcss framer-motion class-variance-authority clsx tailwind-mer
 - **Toast** - Notification component
 - **Strong Password** - Advanced password input
 
+### Text Effects
+- **Animated Gradient Text** - Beautiful gradient text animations
+- **Shiny Text** - Shimmer effect on text
+- **Scramble Text** - Text scrambling reveal effect
+
+And 500+ more components waiting for you to explore!
+
 ## 🎯 Component Example
 
-Here's an example of our Button component:
+Here's a simplified example of our Button component:
 
 ```tsx
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { cn } from "@/lib/utils";
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
+  variant?: 'default' | 'outline' | 'ghost';
   size?: 'default' | 'sm' | 'lg';
-  loading?: boolean;
-  iconLeft?: React.ReactNode;
-  iconRight?: React.ReactNode;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'default', size = 'default', children, loading, onClick, iconLeft, iconRight, ...props }, ref) => {
-    const [ripples, setRipples] = useState<Ripple[]>([]);
-    
-    const createRipple = (event: React.MouseEvent<HTMLButtonElement>) => {
-      if (loading) return;
-      
-      const button = event.currentTarget;
-      const rect = button.getBoundingClientRect();
-      const rippleSize = Math.max(rect.width, rect.height);
-      const x = event.clientX - rect.left - rippleSize / 2;
-      const y = event.clientY - rect.top - rippleSize / 2;
-      
-      const newRipple: Ripple = { x, y, size: rippleSize, id: Date.now() };
-      setRipples(currentRipples => [...currentRipples, newRipple]);
-      
-      setTimeout(() => {
-        setRipples(currentRipples => currentRipples.slice(1));
-      }, 700);
-      
-      onClick?.(event);
-    };
-    
+  ({ className, variant = 'default', size = 'default', ...props }, ref) => {
     return (
       <button
         className={cn(
-          "relative inline-flex items-center justify-center rounded-md text-sm font-medium transition-transform duration-75 focus:outline-none disabled:opacity-50 disabled:pointer-events-none overflow-hidden active:scale-[0.97] cursor-pointer",
-          variantClasses[variant],
-          sizeClasses[size],
+          "inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50",
+          {
+            'bg-primary text-primary-foreground hover:bg-primary/90': variant === 'default',
+            'border border-input bg-background hover:bg-accent hover:text-accent-foreground': variant === 'outline',
+            'hover:bg-accent hover:text-accent-foreground': variant === 'ghost',
+          },
+          {
+            'h-10 px-4 py-2': size === 'default',
+            'h-9 rounded-md px-3': size === 'sm',
+            'h-11 rounded-md px-8': size === 'lg',
+          },
           className
         )}
-        onClick={createRipple}
-        disabled={loading}
         ref={ref}
         {...props}
-      >
-        <span className="relative z-10 flex items-center gap-2">
-          {loading && <Loader2 className="h-4 w-4" />}
-          {!loading && iconLeft && <span>{iconLeft}</span>}
-          {children}
-          {!loading && iconRight && <span>{iconRight}</span>}
-        </span>
-        
-        {!loading && (
-          <div className="absolute inset-0 z-0">
-            {ripples.map((ripple) => (
-              <span
-                key={ripple.id}
-                className={cn("absolute rounded-full animate-ripple", rippleColor)}
-                style={{
-                  left: ripple.x,
-                  top: ripple.y,
-                  width: ripple.size,
-                  height: ripple.size
-                }}
-              />
-            ))}
-          </div>
-        )}
-      </button>
+      />
     );
   }
 );
@@ -173,6 +148,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = "Button";
 export default Button;
 ```
+
+> **Note**: This is a simplified example. Visit our documentation to see the full component with animations and all features!
 
 ## 🛠️ Development
 
@@ -240,15 +217,15 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 
 ## 📄 License
 
-MIT © [Olova UI Team](https://github.com/olovaui)
+MIT © [Olova UI Team](https://github.com/olovalabs/olovaui)
 
 ## 🔗 Links
 
-- [Documentation](https://olovaui.olova.net/docs)
-- [Components](https://olovaui.olova.net)
+- [Documentation](https://olovaui.olova.dev/docs)
+- [Components](https://olovaui.olova.dev)
 - [GitHub](https://github.com/olovalabs/olovaui)
-- [Sponsor](https://olovaui.olova.net/sponsor)
-- [Sera Chat](https://ai.olova.net.com/)
+- [Sponsor](https://olovaui.olova.dev/sponsor)
+- [Sera Chat](https://ai.olova.dev/)
 
 ## 🙏 Acknowledgments
 
@@ -260,5 +237,8 @@ MIT © [Olova UI Team](https://github.com/olovaui)
 
 ---
 
+<div align="center">
+
 **Built with ❤️ by [Nazmul Hossain](https://www.linkedin.com/in/codernazmulhossain/) in Bangladesh**
 
+</div>
