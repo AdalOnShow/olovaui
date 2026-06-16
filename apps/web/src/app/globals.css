@@ -656,3 +656,91 @@ input[type="range"]:focus::-moz-range-thumb {
 .animate-glow {
   animation: glow 2s ease-in-out infinite;
 }
+
+
+
+
+@keyframes hero-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-fade-up {
+  animation: hero-fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes text-sweep {
+  to {
+    background-position: -600% 0;
+  }
+}
+
+.title-sweep {
+  background-size: 600% 100%;
+  background-position: 0 0;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: text-sweep 16s linear infinite;
+}
+
+/* Line 1 "Beautiful" — highlight at position 0%, no phase shift needed */
+.title-sweep-1 {
+  background-image: linear-gradient(
+    90deg,
+    #4ade80 0%,
+    currentColor 8.33%,
+    currentColor 91.67%,
+    #4ade80 100%
+  );
+  animation-delay: 0s;
+}
+
+/* Line 2 "Pre-built UI Library" — phase shifted so its highlight
+   arrives ~4.67s after line 1 finishes */
+.title-sweep-2 {
+  background-image: linear-gradient(
+    90deg,
+    currentColor 0%,
+    currentColor 25%,
+    #4ade80 33.33%,
+    currentColor 41.67%,
+    currentColor 100%
+  );
+  animation-delay: -10.5s;
+}
+
+/* Line 3 "for Busy & Smart devs." — phase shifted so its highlight
+   arrives ~4.67s after line 2 finishes */
+.title-sweep-3 {
+  background-image: linear-gradient(
+    90deg,
+    currentColor 0%,
+    currentColor 58.33%,
+    #4ade80 66.67%,
+    currentColor 75%,
+    currentColor 100%
+  );
+  animation-delay: -5s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-fade-up {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .title-sweep-1,
+  .title-sweep-2,
+  .title-sweep-3 {
+    animation: none;
+    background-image: none;
+    -webkit-text-fill-color: currentColor;
+  }
+}

@@ -128,8 +128,9 @@ const Header = () => {
               {
                 <button
                   onClick={toggleSidebar}
-                  className="flex flex-col items-start gap-1 md:hidden"
+                  className="flex h-11 w-11 flex-col items-center justify-center gap-1 md:hidden rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
                   aria-label="Open menu"
+                  aria-expanded={sidebarOpen}
                 >
                   <span className="w-5 h-0.5 bg-foreground rounded-full" />
                   <span className="w-3 h-0.5 bg-foreground rounded-full" />

@@ -3,7 +3,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import { Search, Command, FileText, Home, Settings } from "lucide-react";
-import { getAllSearchableItems, searchItems, SearchableItem } from "@/lib/search-registry";
+import {
+  getAllSearchableItems,
+  searchItems,
+  SearchableItem,
+} from "@/lib/search-registry";
 import { navigation } from "@/constants/navigation";
 import { componentsNavigation } from "@/constants/components-navigation";
 import Link from "next/link";
@@ -99,7 +103,10 @@ const searchSidebarSections: SearchSidebarSection[] = [
     })),
   })),
   ...componentsNavigation
-    .filter((section) => !navigation.some((navSection) => navSection.label === section.label))
+    .filter(
+      (section) =>
+        !navigation.some((navSection) => navSection.label === section.label),
+    )
     .map((section) => ({
       label: section.label,
       items: section.children.map((child) => ({
@@ -109,7 +116,10 @@ const searchSidebarSections: SearchSidebarSection[] = [
     })),
 ];
 
-export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
+export const SearchModal: React.FC<SearchModalProps> = ({
+  isOpen,
+  onClose,
+}) => {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -129,15 +139,20 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
       }));
     }
 
-    const componentItems = allItems.filter((item) => item.category === "Components");
-    const otherItems = allItems.filter((item) => item.category !== "Components");
+    const componentItems = allItems.filter(
+      (item) => item.category === "Components",
+    );
+    const otherItems = allItems.filter(
+      (item) => item.category !== "Components",
+    );
     return [...componentItems, ...otherItems].slice(0, 12).map((item) => ({
       ...item,
       source: "fallback" as const,
     }));
   }, [query, allItems]);
 
-  const filteredItems = query.trim() && isPagefindReady ? results : fallbackItems;
+  const filteredItems =
+    query.trim() && isPagefindReady ? results : fallbackItems;
   const filteredSidebarSections = React.useMemo(() => {
     if (!query.trim()) {
       return searchSidebarSections;
@@ -154,7 +169,10 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
           return titleMatch || hrefMatch || sectionMatch;
         });
 
-        if (section.label.toLowerCase().includes(searchTerm) && matchingItems.length === 0) {
+        if (
+          section.label.toLowerCase().includes(searchTerm) &&
+          matchingItems.length === 0
+        ) {
           return section;
         }
 
@@ -163,7 +181,11 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
           items: matchingItems,
         };
       })
-      .filter((section) => section.items.length > 0 || section.label.toLowerCase().includes(searchTerm));
+      .filter(
+        (section) =>
+          section.items.length > 0 ||
+          section.label.toLowerCase().includes(searchTerm),
+      );
   }, [query]);
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -188,8 +210,12 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
 
     const loadPagefind = async () => {
       try {
-        // @ts-expect-error Pagefind is generated into /public-like output after the static build.
-        const pagefindModule = (await import(/* webpackIgnore: true */ "/pagefind/pagefind.js")) as PagefindModule;
+        // Build path dynamically to avoid TypeScript trying to resolve the module at compile time.
+        const pagefindPath = "/pagefind" + "/pagefind.js";
+        // @ts-ignore Pagefind is generated into /public-like output after the static build.
+        const pagefindModule = (await import(
+          /* webpackIgnore: true */ pagefindPath
+        )) as PagefindModule;
         if (!cancelled) {
           pagefindRef.current = pagefindModule;
           setIsPagefindReady(true);
@@ -234,13 +260,16 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
 
               return {
                 id: result.id,
-                title: item.meta?.title || href.split("/").filter(Boolean).pop() || "Untitled",
+                title:
+                  item.meta?.title ||
+                  href.split("/").filter(Boolean).pop() ||
+                  "Untitled",
                 description: cleanExcerpt(item.excerpt),
                 href,
                 category: getCategoryFromHref(href),
                 source: "pagefind" as const,
               };
-            })
+            }),
           );
 
           if (searchRequestRef.current === requestId) {
@@ -274,7 +303,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
         case "ArrowDown":
           e.preventDefault();
           setSelectedIndex((prev) =>
-            prev < filteredItems.length - 1 ? prev + 1 : prev
+            prev < filteredItems.length - 1 ? prev + 1 : prev,
           );
           break;
         case "ArrowUp":
@@ -284,7 +313,12 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
         case "Enter":
           e.preventDefault();
           if (filteredItems[selectedIndex]) {
-            router.push(filteredItems[selectedIndex].href);
+            try {
+              if (typeof router?.push === "function")
+                router.push(filteredItems[selectedIndex].href);
+            } catch {
+              // ignore if router not ready
+            }
             onClose();
           }
           break;
@@ -302,8 +336,17 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
   useEffect(() => {
     if (!isOpen) return;
 
-    for (const item of filteredItems.slice(0, 6)) {
-      router.prefetch(item.href);
+    if (typeof window !== "undefined") {
+      setTimeout(() => {
+        for (const item of filteredItems.slice(0, 6)) {
+          try {
+            if (typeof router?.prefetch === "function")
+              router.prefetch(item.href);
+          } catch {
+            // ignore if router not ready
+          }
+        }
+      }, 0);
     }
   }, [filteredItems, isOpen, router]);
 

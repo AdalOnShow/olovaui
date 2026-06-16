@@ -1,4 +1,4 @@
-
+﻿
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 
@@ -21,17 +21,33 @@ export const Hero = () => {
         </Link>
       </div>
 
-      {/* Hero Title */}
+
+      
       <div className="max-w-4xl mx-auto text-center space-y-4 mb-8">
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground">
-          <span className="block">Beautiful</span>
-          <span className="inline-flex items-center gap-2 flex-wrap justify-center">
-            Pre-built UI Library
-          </span>
-          <br />
-          for Busy & Smart devs.
-        </h1>
-      </div>
+      <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground">
+
+        {/* Line 1 */}
+        <span className="hero-fade-up block [animation-delay:0ms]">
+          <span className="title-sweep title-sweep-1">Beautiful</span>
+        </span>
+
+        {/* Line 2 */}
+        <span className="hero-fade-up inline-flex items-center gap-2 flex-wrap justify-center [animation-delay:150ms]">
+          <span className="title-sweep title-sweep-2">Pre-built UI Library</span>
+        </span>
+
+        <br />
+
+        {/* Line 3 */}
+        <span className="hero-fade-up block [animation-delay:300ms]">
+          <span className="title-sweep title-sweep-3">for Busy & Smart devs.</span>
+        </span>
+
+      </h1>
+    </div>
+     
+      
+     
 
       {/* Description */}
       <p className="max-w-2xl mx-auto text-center text-lg text-muted-foreground mb-10 leading-relaxed">
