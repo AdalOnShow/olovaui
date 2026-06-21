@@ -106,9 +106,7 @@ export function Combobox({
   }, [multiple, normalizedValue]);
 
   const selectedLabels = React.useMemo(() => {
-    return selectedValues.map(
-      (val) => optionsMap.get(val) ?? val,
-    );
+    return selectedValues.map((val) => optionsMap.get(val) ?? val);
   }, [optionsMap, selectedValues]);
 
   const setOpen = React.useCallback(
@@ -151,15 +149,18 @@ export function Combobox({
     [filter, query],
   );
 
-  const setOptionLabel = React.useCallback((optionValue: string, label: string) => {
-    setOptionsMap((prev) => {
-      const existing = prev.get(optionValue);
-      if (existing === label) return prev;
-      const next = new Map(prev);
-      next.set(optionValue, label);
-      return next;
-    });
-  }, []);
+  const setOptionLabel = React.useCallback(
+    (optionValue: string, label: string) => {
+      setOptionsMap((prev) => {
+        const existing = prev.get(optionValue);
+        if (existing === label) return prev;
+        const next = new Map(prev);
+        next.set(optionValue, label);
+        return next;
+      });
+    },
+    [],
+  );
 
   const removeOptionLabel = React.useCallback((optionValue: string) => {
     setOptionsMap((prev) => {
@@ -287,7 +288,7 @@ export function Combobox({
     >
       <div
         ref={rootRef}
-        className={cn("relative w-full", className)}
+        className={cn("w-full", className)}
         {...props}
       >
         {render
@@ -311,11 +312,8 @@ export interface ComboboxInputProps
   children?: React.ReactNode;
 }
 
-export const ComboboxInput = React.forwardRef<
-  HTMLInputElement,
-  ComboboxInputProps
->(
-  (
+export const ComboboxInput = React.forwardRef<HTMLInputElement, ComboboxInputProps>(
+  function ComboboxInputInner(
     {
       className,
       containerClassName,
@@ -326,9 +324,9 @@ export const ComboboxInput = React.forwardRef<
       onChange,
       onKeyDown,
       ...props
-    },
-    ref,
-  ) => {
+    }: ComboboxInputProps,
+    ref: React.Ref<HTMLInputElement>,
+  ) {
     const {
       open,
       setOpen,
@@ -341,7 +339,6 @@ export const ComboboxInput = React.forwardRef<
     } = useComboboxContext();
 
     const hasValue = query.length > 0 || selectedValues.length > 0;
-
     const inputRef = React.useRef<HTMLInputElement | null>(null);
 
     React.useImperativeHandle(ref, () => inputRef.current as HTMLInputElement);
@@ -361,9 +358,7 @@ export const ComboboxInput = React.forwardRef<
           event.preventDefault();
           inputRef.current?.focus();
         }}
-        onClick={() => {
-          setOpen(true);
-        }}
+        onClick={() => setOpen(true)}
       >
         {children}
         <input
@@ -383,19 +378,13 @@ export const ComboboxInput = React.forwardRef<
             onChange?.(event);
           }}
           onKeyDown={(event) => {
-            if (event.key === "Escape") {
-              setOpen(false);
-            }
-            if (event.key === "ArrowDown") {
-              setOpen(true);
-            }
+            if (event.key === "Escape") setOpen(false);
+            if (event.key === "ArrowDown") setOpen(true);
             onKeyDown?.(event);
           }}
           onClick={(event) => {
             onInputClick?.(event);
-            if (!event.defaultPrevented) {
-              setOpen(true);
-            }
+            if (!event.defaultPrevented) setOpen(true);
           }}
           className={cn(
             "min-w-[6rem] flex-1 bg-transparent text-sm outline-none",
@@ -431,47 +420,56 @@ ComboboxInput.displayName = "ComboboxInput";
 export interface ComboboxContentProps
   extends React.HTMLAttributes<HTMLDivElement> {}
 
-export const ComboboxContent = React.forwardRef<
-  HTMLDivElement,
-  ComboboxContentProps
->(({ className, ...props }, ref) => {
-  const { open } = useComboboxContext();
+export const ComboboxContent = React.forwardRef<HTMLDivElement, ComboboxContentProps>(
+  function ComboboxContentInner(
+    { className, ...props }: ComboboxContentProps,
+    ref: React.Ref<HTMLDivElement>,
+  ) {
+    const { open } = useComboboxContext();
 
-  if (!open) return null;
-
-  return (
-    <div
-      ref={ref}
-      className={cn(
-        "absolute z-50 mt-2 w-full overflow-hidden rounded-2xl border border-border bg-card shadow-xl",
-        className,
-      )}
-      {...props}
-    />
-  );
-});
+    return (
+      <div
+        className="grid transition-[grid-template-rows] duration-200 ease-in-out"
+        style={{ gridTemplateRows: open ? "1fr" : "0fr" }}
+      >
+        <div className="overflow-hidden">
+          <div
+            ref={ref}
+            className={cn(
+              "mt-2 w-full overflow-hidden rounded-2xl border border-border bg-card shadow-xl",
+              className,
+            )}
+            {...props}
+          />
+        </div>
+      </div>
+    );
+  },
+);
 
 ComboboxContent.displayName = "ComboboxContent";
 
 export interface ComboboxListProps
   extends React.HTMLAttributes<HTMLDivElement> {}
 
-export const ComboboxList = React.forwardRef<
-  HTMLDivElement,
-  ComboboxListProps
->(({ className, ...props }, ref) => {
-  const { listId } = useComboboxContext();
+export const ComboboxList = React.forwardRef<HTMLDivElement, ComboboxListProps>(
+  function ComboboxListInner(
+    { className, ...props }: ComboboxListProps,
+    ref: React.Ref<HTMLDivElement>,
+  ) {
+    const { listId } = useComboboxContext();
 
-  return (
-    <div
-      ref={ref}
-      id={listId}
-      role="listbox"
-      className={cn("max-h-64 overflow-y-auto p-2", className)}
-      {...props}
-    />
-  );
-});
+    return (
+      <div
+        ref={ref}
+        id={listId}
+        role="listbox"
+        className={cn("max-h-64 overflow-y-auto p-2", className)}
+        {...props}
+      />
+    );
+  },
+);
 
 ComboboxList.displayName = "ComboboxList";
 
@@ -481,11 +479,19 @@ export interface ComboboxItemProps
   label?: string;
 }
 
-export const ComboboxItem = React.forwardRef<
-  HTMLButtonElement,
-  ComboboxItemProps
->(
-  ({ value, label, className, disabled, children, onClick, ...props }, ref) => {
+export const ComboboxItem = React.forwardRef<HTMLButtonElement, ComboboxItemProps>(
+  function ComboboxItemInner(
+    {
+      value,
+      label,
+      className,
+      disabled,
+      children,
+      onClick,
+      ...props
+    }: ComboboxItemProps,
+    ref: React.Ref<HTMLButtonElement>,
+  ) {
     const {
       matches,
       registerOption,
@@ -539,7 +545,9 @@ export const ComboboxItem = React.forwardRef<
         {...props}
       >
         <span className="inline-flex items-center gap-2">{children}</span>
-        {selected ? <Check size={16} className="text-muted-foreground" /> : null}
+        {selected ? (
+          <Check size={16} className="text-muted-foreground" />
+        ) : null}
       </button>
     );
   },
@@ -553,9 +561,7 @@ export interface ComboboxEmptyProps
 export function ComboboxEmpty({ className, ...props }: ComboboxEmptyProps) {
   const { visibleCount } = useComboboxContext();
 
-  if (visibleCount > 0) {
-    return null;
-  }
+  if (visibleCount > 0) return null;
 
   return (
     <p
@@ -574,12 +580,13 @@ export interface ComboboxChipsProps
 export function ComboboxChips({ className, ...props }: ComboboxChipsProps) {
   const { selectedValues, selectedLabels, selectValue } = useComboboxContext();
 
-  if (selectedValues.length === 0) {
-    return null;
-  }
+  if (selectedValues.length === 0) return null;
 
   return (
-    <div className={cn("flex flex-wrap items-center gap-2", className)} {...props}>
+    <div
+      className={cn("flex flex-wrap items-center gap-2", className)}
+      {...props}
+    >
       {selectedValues.map((value, index) => (
         <span
           key={value}

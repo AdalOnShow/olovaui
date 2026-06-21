@@ -28,9 +28,43 @@ Present grouped actions inside a compact floating menu.
 ## Usage
 
 ```tsx
-import { DropdownMenu } from "@/app/components/dropdown-menu/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/app/components/dropdown-menu/dropdown-menu";
 
 export default function Example() {
-  return <DropdownMenu />;
+  const [open, setOpen] = React.useState(false);
+  const triggerRef = React.useRef<HTMLButtonElement>(null);
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        ref={triggerRef}
+        open={open}
+        onClick={() => setOpen((o) => !o)}
+      />
+      {open && (
+        <DropdownMenuContent
+          anchorRef={triggerRef as React.RefObject<HTMLElement>}
+        >
+          <DropdownMenuItem>Profile</DropdownMenuItem>
+          <DropdownMenuItem>Billing</DropdownMenuItem>
+          <DropdownMenuItem>Sign out</DropdownMenuItem>
+          <DropdownMenuItem disabled>Disabled item</DropdownMenuItem>
+        </DropdownMenuContent>
+      )}
+    </DropdownMenu>
+  );
 }
 ```
+
+## API Reference
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `open` | `boolean` | `undefined` | Controls chevron rotation on the trigger. |
+| `anchorRef` | `RefObject<HTMLElement>` | `undefined` | Ref of the trigger element used to position the portal content. |
+| `disabled` | `boolean` | `undefined` | Disables a `DropdownMenuItem` — mutes it and blocks interaction. |
